@@ -1,0 +1,580 @@
+<?php
+function inquiry_api_form_alter(&$form, &$form_state, $form_id){
+	global $user, $base_url;
+	if($form_id == 'webform_client_form_215'){
+		$form['#after_build'][] = 'form_change_event';
+		$form['#submit'][] = 'func_submit';
+	}
+	
+	if($form_id == 'webform_client_form_431'){
+		$form['#after_build'][] = 'form_change_event_bb';
+		$form['#submit'][] = 'func_broadband_submit';
+	}
+	
+	if($form_id == 'webform_client_form_432'){
+		$form['#after_build'][] = 'form_change_event';
+		$form['#submit'][] = 'func_sd_submit';
+	}
+	
+	if($form_id == 'webform_client_form_480'){
+		$form['#after_build'][] = 'form_change_event';
+		$form['#submit'][] = 'func_hd_submit';
+	}
+	if($form_id == 'channel_packages_node_form'){
+		$form['#submit'][] = 'channel_packages_node_update';
+	}
+	
+	
+}
+
+function channel_packages_node_update(&$form, &$form_state) {
+	$count_selected_channels = count($form_state['values']['field_channels']['und']);
+	$form['#node']->field_total_number_of_channels['und'][0]['value'] = $count_selected_channels;
+	$form['#node']->field_total_number_of_channels['und'][0]['safe_value'] = $count_selected_channels;
+	$form_state['input']['field_total_number_of_channels']['und'][0]['value'] = $count_selected_channels;
+	$form_state['values']['field_total_number_of_channels']['und'][0]['value'] = $count_selected_channels;
+	return $form;
+}
+
+function form_change_event($form, &$form_state) {
+
+
+  $form['submitted']['select_city']['#attributes'] = array(
+      'onchange' => "return selectarea(this.value)"
+      );
+  $form['submitted']['area_1']['#attributes'] = array(
+      'disabled' => "disabled"
+      );
+  return $form;
+}
+function form_change_event_bb($form, &$form_state) {
+
+
+  $form['submitted']['select_city']['#attributes'] = array(
+      'onchange' => "return selectarea_bb(this.value)"
+      );
+  $form['submitted']['area_broadband']['#attributes'] = array(
+      'disabled' => "disabled"
+      );
+  return $form;
+}
+
+function func_submit($form, &$form_state){
+	$inserted_id = $form_state['redirect']['1']['query']['sid'];
+
+	$fname = $form['submitted']['first_name']['#value'];
+	$lname = $form['submitted']['last_name']['#value'];
+	$contact_no = $form['submitted']['contact_no']['#value'];
+	$inquiry_type_1 = $form['submitted']['inquiry_type_1']['#value'];
+	$address_1 = $form['submitted']['address_1']['#value'];
+	$address_2 = $form['submitted']['address_2']['#value'];
+	$select_city = $form['submitted']['select_city']['#value'];
+	$area = $form['submitted']['area_1']['#value'];
+	$pincode = $form['submitted']['pincode']['#value'];
+	$priority = $form['submitted']['priority']['#value'];
+	$user_remarks = $form['submitted']['user_remarks']['#value'];
+	$user_selection_pack = $form['submitted']['user_selection_pack']['#value'];
+
+	
+	$cname = $fname." ".$lname ;
+	$address = $address_1." ".$address_2 ;
+	$final_remark = $user_remarks."\n\nUser Selection\n".$user_selection_pack ;
+	
+	$cname = html_entity_decode($cname,ENT_QUOTES); 
+	$contact_no = html_entity_decode($contact_no,ENT_QUOTES);
+	$address = html_entity_decode($address,ENT_QUOTES);
+	$pincode = html_entity_decode($pincode,ENT_QUOTES);
+	$user_remarks = html_entity_decode($user_remarks,ENT_QUOTES);
+	$email = $form['submitted']['e_mail']['#value'];
+
+	$URL='http://182.237.8.251:82/inquiry.asmx?wsdl';
+	$client1 =  new SoapClient($URL,array( "trace" => 1 ));	
+ 
+	$result=$client1->AutoRefno();
+ 
+  
+	$RefNo_xml=$result; 
+  
+	$RefNo=$RefNo_xml->AutoRefnoResult;
+	$_SESSION['RefNo'] = $RefNo;
+	$_SESSION['form_submit'] = $form['#node']->nid;
+	$gtpl_Date=date("m/d/Y H:i:s A",time()); 
+    
+	$query = "UPDATE `webform_submitted_data` SET `data` = '".$RefNo."' WHERE `sid` = '".$inserted_id."' AND `cid` =17";
+	db_query($query);
+	
+	$qry_str="insert into cc3 
+		(REFNO,DATE,CATEGORY,GTPLPRODUCT,CUSTOMERNAME,CONTACTNO,ADDRESS,PINCODE,
+		PRIORITY,AREA,CITY,UNIT,OPERATORNAME,OPERATORCONTACTNO,
+		AGENTNAME,CCREMARK,SOURCEOFINQUIRY,STATUS,REF_NAME,REF_MOBILE,REF_DEPT)  
+		values(".$RefNo.",'".$gtpl_Date."','CATV','NEW CONNECTION REQUEST','".$cname."','".$contact_no."','".$address."','".$pincode."',
+		'".$priority."','".$area."','".$select_city."','".$area."','RECEIVED VIA WEBSITE','RECEIVED VIA WEBSITE',
+		'RECEIVED VIA WEBSITE','RECEIVED VIA WEBSITE','WEBSITE','OPEN','WEBSITE','WEBSITE','WEBSITE')"; 
+			
+	$params = array(
+		"str" =>  $qry_str
+	);
+
+	//$client1 = $_SESSION['RefClient'];
+	
+	$result_insert_data=$client1->InsertData($params);
+	
+	//echo "<p>Request :".htmlspecialchars($client1->__getLastRequest()) ."</p>";
+  
+	//echo "<p>Response:".htmlspecialchars($client1->__getLastResponse(),ENT_QUOTES)."</p>";
+	//exit();
+	$from = 'gtpl@attuneinfocom.in';
+	$header  = "From: $from <$from>\n" .
+	    "MIME-Version: 1.0\n" .
+	    "Content-type: text/html; charset=iso-8859-1";
+	$subject = 'GTPL - Digital Cable package Form Submission';
+	$to = $email;
+
+	$mail_params=array();
+    $module = 'custom';
+    $key = 'submission';
+    $language = language_default();
+    $from = 'gtpl@attuneinfocom.in';
+    $send = FALSE;
+	
+	$message = drupal_mail($module, $key, $email, $language, @$params, $from, $send);
+
+    $message['subject'] = $subject;
+    $message['body'] = array();
+	
+		
+    foreach ($form_state['input']['submitted'] as $value_index => $value) {
+      
+     	//$message['body'][]=$value_index." : ".$value;
+      
+    }
+	$message['body'][] = "Dear ".$cname.",\n\n
+Thank You for submitting ".$form['#node']->title." form. \n\nYour reference no. is ".$_SESSION['RefNo']."\n\nThank You\nGTPL";
+ 
+
+    // Retrieve the responsible implementation for this message.
+    $system = drupal_mail_system($module, $key);
+
+    // Format the message body.
+    $message = $system->format($message);
+	//$message['headers']['Content-Type'] = 'text/html; charset=UTF-8; format=flowed';
+    // Send e-mail.
+    $message['result'] = $system->mail($message);
+}
+
+function func_broadband_submit($form, &$form_state){
+	
+	/*echo "<pre>";
+	print_r($form);
+	exit();*/
+
+	$inserted_id = $form_state['redirect']['1']['query']['sid'];
+    
+	
+	$selected_plan = $form['submitted']['selected_plan_1']['#value'];
+	$fname = $form['submitted']['first_name']['#value'];
+	$lname = $form['submitted']['last_name']['#value'];
+	$contact_no = $form['submitted']['contact_no']['#value'];
+	$inquiry_type_1 = $form['submitted']['inquiry_type']['#value'];
+	$address_1 = $form['submitted']['address_1']['#value'];
+	$address_2 = $form['submitted']['address_2']['#value'];
+	$select_city = $form['submitted']['select_city']['#value'];
+	/*$area = $form['submitted']['area_1']['#value'];*/
+	$pincode = $form['submitted']['pincode']['#value'];
+	$priority = $form['submitted']['priority']['#value'];
+	$user_remarks = $form['submitted']['user_remarks']['#value'];
+	$email = $form['submitted']['e_mail']['#value'];
+	
+	$cname = $fname." ".$lname ;
+	$address = $address_1." ".$address_2 ;
+	
+	$cname = html_entity_decode($cname,ENT_QUOTES); 
+	$contact_no = html_entity_decode($contact_no,ENT_QUOTES);
+	$address = html_entity_decode($address,ENT_QUOTES);
+	$pincode = html_entity_decode($pincode,ENT_QUOTES);
+	$user_remarks = html_entity_decode($user_remarks,ENT_QUOTES);
+
+	$URL='http://182.237.8.251:82/inquiry.asmx?wsdl';
+	$client1 =  new SoapClient($URL,array( "trace" => 1 ));	
+ 
+	$result=$client1->AutoRefno();
+ 
+  
+	$RefNo_xml=$result; 
+  
+	$RefNo=$RefNo_xml->AutoRefnoResult;
+	$_SESSION['RefNo'] = $RefNo;
+	$_SESSION['form_submit'] = $form['#node']->nid;
+	$gtpl_Date=date("m/d/Y H:i:s A",time()); 
+    
+	$query = "UPDATE `webform_submitted_data` SET `data` = '".$RefNo."' WHERE `sid` = '".$inserted_id."' AND `cid` =18";
+	db_query($query);
+	
+	$qry_str="insert into cc3 
+		(REFNO,DATE,CATEGORY,GTPLPRODUCT,CUSTOMERNAME,CONTACTNO,ADDRESS,PINCODE,
+		PRIORITY,AREA,CITY,UNIT,OPERATORNAME,OPERATORCONTACTNO,
+		AGENTNAME,CCREMARK,SOURCEOFINQUIRY,STATUS,REF_NAME,REF_MOBILE,REF_DEPT)  
+		values(".$RefNo.",'".$gtpl_Date."','BROADBAND','NEW CONNECTION REQUEST','".$cname."','".$contact_no."','".$address."','".$pincode."',
+		'".$priority."','".$select_city."','".$select_city."','".$select_city."','RECEIVED VIA WEBSITE','RECEIVED VIA WEBSITE',
+		'RECEIVED VIA WEBSITE','RECEIVED VIA WEBSITE','WEBSITE','OPEN','WEBSITE','WEBSITE','WEBSITE')"; 
+			
+	$params = array(
+		"str" =>  $qry_str
+	);
+
+	$result_insert_data=$client1->InsertData($params);
+	
+	//echo "<p>Request :".htmlspecialchars($client1->__getLastRequest()) ."</p>";
+  
+	//echo "<p>Response:".htmlspecialchars($client1->__getLastResponse(),ENT_QUOTES)."</p>";
+	//exit();
+	
+	$from = 'gtpl@attuneinfocom.in';
+	$header  = "From: $from <$from>\n" .
+	    "MIME-Version: 1.0\n" .
+	    "Content-type: text/html; charset=iso-8859-1";
+	$subject = 'GTPL - Broadband Form Submission';
+	$to = $email;
+
+	$mail_params=array();
+    $module = 'custom';
+    $key = 'submission';
+    $language = language_default();
+    $from = 'gtpl@attuneinfocom.in';
+    $send = FALSE;
+	
+	$message = drupal_mail($module, $key, $email, $language, @$params, $from, $send);
+
+    $message['subject'] = $subject;
+    $message['body'] = array();
+	
+		
+    foreach ($form_state['input']['submitted'] as $value_index => $value) {
+      
+     	//$message['body'][]=$value_index." : ".$value;
+      
+    }
+	$message['body'][] = "Dear ".$cname.",\n\n
+Thank You for submitting ".$form['#node']->title." form. \n\nYour reference no. is ".$_SESSION['RefNo']."\n\nThank You\nGTPL";
+ 
+
+    // Retrieve the responsible implementation for this message.
+    $system = drupal_mail_system($module, $key);
+
+    // Format the message body.
+    $message = $system->format($message);
+	//$message['headers']['Content-Type'] = 'text/html; charset=UTF-8; format=flowed';
+    // Send e-mail.
+    $message['result'] = $system->mail($message);
+}
+
+function func_sd_submit($form, &$form_state){
+	
+	$inserted_id = $form_state['redirect']['1']['query']['sid'];
+
+	$fname = $form['submitted']['first_name']['#value'];
+	$lname = $form['submitted']['last_name']['#value'];
+	$contact_no = $form['submitted']['contact_no']['#value'];
+	$inquiry_type_1 = $form['submitted']['inquiry_type']['#value'];
+	$address_1 = $form['submitted']['address_1']['#value'];
+	$address_2 = $form['submitted']['address_2']['#value'];
+	$select_city = $form['submitted']['select_city']['#value'];
+	$area = $form['submitted']['area_1']['#value'];
+	$pincode = $form['submitted']['pincode']['#value'];
+	$priority = $form['submitted']['priority']['#value'];
+	$user_remarks = $form['submitted']['user_remarks']['#value'];
+	$email = $form['submitted']['e_mail']['#value'];
+	
+	$cname = $fname." ".$lname ;
+	$address = $address_1." ".$address_2 ;
+	
+	$cname = html_entity_decode($cname,ENT_QUOTES); 
+	$contact_no = html_entity_decode($contact_no,ENT_QUOTES);
+	$address = html_entity_decode($address,ENT_QUOTES);
+	$pincode = html_entity_decode($pincode,ENT_QUOTES);
+	$user_remarks = html_entity_decode($user_remarks,ENT_QUOTES);
+
+	$URL='http://182.237.8.251:82/inquiry.asmx?wsdl';
+	$client1 =  new SoapClient($URL,array( "trace" => 1 ));	
+ 
+	$result=$client1->AutoRefno();
+ 
+  
+	$RefNo_xml=$result; 
+  
+	$RefNo=$RefNo_xml->AutoRefnoResult;
+	$_SESSION['RefNo'] = $RefNo;
+	$_SESSION['form_submit'] = $form['#node']->nid;
+	$gtpl_Date=date("m/d/Y H:i:s A",time()); 
+    
+	$query = "UPDATE `webform_submitted_data` SET `data` = '".$RefNo."' WHERE `sid` = '".$inserted_id."' AND `cid` =14";
+	db_query($query);
+	
+	$qry_str="insert into cc3 
+		(REFNO,DATE,CATEGORY,GTPLPRODUCT,CUSTOMERNAME,CONTACTNO,ADDRESS,PINCODE,
+		PRIORITY,AREA,CITY,UNIT,OPERATORNAME,OPERATORCONTACTNO,
+		AGENTNAME,CCREMARK,SOURCEOFINQUIRY,STATUS,REF_NAME,REF_MOBILE,REF_DEPT)  
+		values(".$RefNo.",'".$gtpl_Date."','SD_CATV','NEW CONNECTION REQUEST','".$cname."','".$contact_no."','".$address."','".$pincode."',
+		'".$priority."','".$area."','".$select_city."','".$area."','RECEIVED VIA WEBSITE','RECEIVED VIA WEBSITE',
+		'RECEIVED VIA WEBSITE','RECEIVED VIA WEBSITE','WEBSITE','OPEN','WEBSITE','WEBSITE','WEBSITE')"; 
+			
+	$params = array(
+		"str" =>  $qry_str
+	);
+
+	$result_insert_data=$client1->InsertData($params);
+	
+	//echo "<p>Request :".htmlspecialchars($client1->__getLastRequest()) ."</p>";
+  
+	//echo "<p>Response:".htmlspecialchars($client1->__getLastResponse(),ENT_QUOTES)."</p>";
+	//exit();
+	
+	$from = 'gtpl@attuneinfocom.in';
+	$header  = "From: $from <$from>\n" .
+	    "MIME-Version: 1.0\n" .
+	    "Content-type: text/html; charset=iso-8859-1";
+	$subject = 'GTPL - Standard Definition Form Submission';
+	$to = $email;
+
+	$mail_params=array();
+    $module = 'custom';
+    $key = 'submission';
+    $language = language_default();
+    $from = 'gtpl@attuneinfocom.in';
+    $send = FALSE;
+	
+	$message = drupal_mail($module, $key, $email, $language, @$params, $from, $send);
+
+    $message['subject'] = $subject;
+    $message['body'] = array();
+	
+		
+    foreach ($form_state['input']['submitted'] as $value_index => $value) {
+      
+     	//$message['body'][]=$value_index." : ".$value;
+      
+    }
+	$message['body'][] = "Dear ".$cname.",\n\n
+Thank You for submitting ".$form['#node']->title." form. \n\nYour reference no. is ".$_SESSION['RefNo']."\n\nThank You\nGTPL";
+ 
+
+    // Retrieve the responsible implementation for this message.
+    $system = drupal_mail_system($module, $key);
+
+    // Format the message body.
+    $message = $system->format($message);
+	//$message['headers']['Content-Type'] = 'text/html; charset=UTF-8; format=flowed';
+    // Send e-mail.
+    $message['result'] = $system->mail($message);
+}
+
+function func_hd_submit($form, &$form_state){
+	
+	//echo "<pre>";
+
+	$inserted_id = $form_state['redirect']['1']['query']['sid'];
+
+	$fname = $form['submitted']['first_name']['#value'];
+	$lname = $form['submitted']['last_name']['#value'];
+	$contact_no = $form['submitted']['contact_no']['#value'];
+	$inquiry_type_1 = $form['submitted']['inquiry_type']['#value'];
+	$address_1 = $form['submitted']['address_1']['#value'];
+	$address_2 = $form['submitted']['address_2']['#value'];
+	$select_city = $form['submitted']['select_city']['#value'];
+	$area = $form['submitted']['area_1']['#value'];
+	$pincode = $form['submitted']['pincode']['#value'];
+	$priority = $form['submitted']['priority']['#value'];
+	$user_remarks = $form['submitted']['user_remarks']['#value'];
+	$email = $form['submitted']['e_mail']['#value'];
+	
+	$cname = $fname." ".$lname ;
+	$address = $address_1." ".$address_2 ;
+	
+	$cname = html_entity_decode($cname,ENT_QUOTES); 
+	$contact_no = html_entity_decode($contact_no,ENT_QUOTES);
+	$address = html_entity_decode($address,ENT_QUOTES);
+	$pincode = html_entity_decode($pincode,ENT_QUOTES);
+	$user_remarks = html_entity_decode($user_remarks,ENT_QUOTES);
+
+	$URL='http://182.237.8.251:82/inquiry.asmx?wsdl';
+	$client1 =  new SoapClient($URL,array( "trace" => 1 ));	
+ 
+	$result=$client1->AutoRefno();
+ 
+  
+	$RefNo_xml=$result; 
+  
+	$RefNo=$RefNo_xml->AutoRefnoResult;
+	$_SESSION['RefNo'] = $RefNo;
+	$_SESSION['form_submit'] = $form['#node']->nid;
+	$gtpl_Date=date("m/d/Y H:i:s A",time()); 
+    
+	$query = "UPDATE `webform_submitted_data` SET `data` = '".$RefNo."' WHERE `sid` = '".$inserted_id."' AND `cid` =13";
+	db_query($query);
+	
+	$qry_str="insert into cc3 
+		(REFNO,DATE,CATEGORY,GTPLPRODUCT,CUSTOMERNAME,CONTACTNO,ADDRESS,PINCODE,
+		PRIORITY,AREA,CITY,UNIT,OPERATORNAME,OPERATORCONTACTNO,
+		AGENTNAME,CCREMARK,SOURCEOFINQUIRY,STATUS,REF_NAME,REF_MOBILE,REF_DEPT)  
+		values(".$RefNo.",'".$gtpl_Date."','HD_CATV','NEW CONNECTION REQUEST','".$cname."','".$contact_no."','".$address."','".$pincode."',
+		'".$priority."','".$area."','".$select_city."','".$area."','RECEIVED VIA WEBSITE','RECEIVED VIA WEBSITE',
+		'RECEIVED VIA WEBSITE','RECEIVED VIA WEBSITE','WEBSITE','OPEN','WEBSITE','WEBSITE','WEBSITE')"; 
+			
+	$params = array(
+		"str" =>  $qry_str
+	);
+
+	$result_insert_data=$client1->InsertData($params);
+	
+	$from = 'gtpl@attuneinfocom.in';
+	$header  = "From: $from <$from>\n" .
+	    "MIME-Version: 1.0\n" .
+	    "Content-type: text/html; charset=iso-8859-1";
+	$subject = 'GTPL - High Definition Form Submission';
+	$to = $email;
+
+	$mail_params=array();
+    $module = 'custom';
+    $key = 'submission';
+    $language = language_default();
+    $from = 'gtpl@attuneinfocom.in';
+    $send = FALSE;
+	
+	$message = drupal_mail($module, $key, $email, $language, @$params, $from, $send);
+
+    $message['subject'] = $subject;
+    $message['body'] = array();
+	
+		
+    foreach ($form_state['input']['submitted'] as $value_index => $value) {
+      
+     	//$message['body'][]=$value_index." : ".$value;
+      
+    }
+	$message['body'][] = "Dear ".$cname.",\n\n
+Thank You for submitting ".$form['#node']->title." form. \n\nYour reference no. is ".$_SESSION['RefNo']."\n\nThank You\nGTPL";
+ 
+
+    // Retrieve the responsible implementation for this message.
+    $system = drupal_mail_system($module, $key);
+
+    // Format the message body.
+    $message = $system->format($message);
+	//$message['headers']['Content-Type'] = 'text/html; charset=UTF-8; format=flowed';
+    // Send e-mail.
+    $message['result'] = $system->mail($message);
+	
+	//echo "<p>Request :".htmlspecialchars($client1->__getLastRequest()) ."</p>";
+  
+	//echo "<p>Response:".htmlspecialchars($client1->__getLastResponse(),ENT_QUOTES)."</p>";
+	//exit();
+}
+
+/*function func_caf_submit($form, &$form_state){
+	
+	//echo "<pre>";
+
+	$inserted_id = $form_state['redirect']['1']['query']['sid'];
+
+	$fname = $form['submitted']['first_name']['#value'];
+	$mname = $form['submitted']['middle_name']['#value'];
+	$lname = $form['submitted']['last_name']['#value'];
+	$tel_no = $form['submitted']['teleno']['#value'];
+	$contact_no = $form['submitted']['mob_no']['#value'];
+	
+	$address_1 = $form['submitted']['address_1']['#value'];
+	$address_2 = $form['submitted']['address_2']['#value'];
+	$state = $form['submitted']['state']['#value'];
+	$city = $form['submitted']['city']['#value'];
+	$pincode = $form['submitted']['pincode']['#value'];
+	$email = $form['submitted']['e_mail']['#value'];
+	//echo "<pre>";
+	//print_r($email);
+	//exit();
+	
+	$cname = $fname." ". $mname ." ".$lname ;
+	$address = $address_1." ".$address_2 ;
+	$contact_no1 = $tel_no." ".$contact_no ;
+	
+	
+	$cname = html_entity_decode($cname,ENT_QUOTES); 
+	$contact_no1 = html_entity_decode($contact_no1,ENT_QUOTES);
+	$address = html_entity_decode($address,ENT_QUOTES);
+	$pincode = html_entity_decode($pincode,ENT_QUOTES);
+	//$user_remarks = html_entity_decode($user_remarks,ENT_QUOTES);
+
+	$URL='http://182.237.8.251:82/inquiry.asmx?wsdl';
+	$client1 =  new SoapClient($URL,array( "trace" => 1 ));	
+ 
+	$result=$client1->AutoRefno();
+ 
+  
+	$RefNo_xml=$result; 
+  
+	$RefNo=$RefNo_xml->AutoRefnoResult;
+	$_SESSION['RefNo'] = $RefNo;
+	$_SESSION['form_submit'] = $form['#node']->nid;
+	$gtpl_Date=date("m/d/Y H:i:s A",time()); 
+    
+	$query = "UPDATE `webform_submitted_data` SET `data` = '".$RefNo."' WHERE `sid` = '".$inserted_id."' AND `cid` =22";
+	db_query($query);
+	
+	
+	$from = 'gtpl@attuneinfocom.in';
+	$header  = "From: $from <$from>\n" .
+	    "MIME-Version: 1.0\n" .
+	    "Content-type: text/html; charset=iso-8859-1";
+	$subject = 'GTPL - Register Form Submission';
+	$to = $email;
+
+	$mail_params=array();
+    $module = 'custom';
+    $key = 'submission';
+    $language = language_default();
+    $from = 'gtpl@attuneinfocom.in';
+    $send = FALSE;
+	
+	$message = drupal_mail($module, $key, $email, $language, @$params, $from, $send);
+
+    $message['subject'] = $subject;
+    $message['body'] = array();
+	
+		
+    foreach ($form_state['input']['submitted'] as $value_index => $value) {
+      
+     	//$message['body'][]=$value_index." : ".$value;
+      
+    }
+	$message['body'][] = "Dear ".$cname.",\n\n
+Thnak You for submiting ".$form['#node']->title." form. \n\nYour reference no. is ".$_SESSION['RefNo']."\n\nThank You\nGTPL";
+ 
+
+    // Retrieve the responsible implementation for this message.
+    $system = drupal_mail_system($module, $key);
+
+    // Format the message body.
+    $message = $system->format($message);
+	//$message['headers']['Content-Type'] = 'text/html; charset=UTF-8; format=flowed';
+    // Send e-mail.
+    $message['result'] = $system->mail($message);
+	//mail($to,$subject,$message,$header);
+	
+	$qry_str="insert into cc3 
+		(REFNO,DATE,CATEGORY,GTPLPRODUCT,CUSTOMERNAME,CONTACTNO,ADDRESS,PINCODE,
+		PRIORITY,AREA,CITY,UNIT,OPERATORNAME,OPERATORCONTACTNO,
+		AGENTNAME,CCREMARK,SOURCEOFINQUIRY,STATUS,REF_NAME,REF_MOBILE,REF_DEPT)  
+		values(".$RefNo.",'".$gtpl_Date."','CAFTV','NEW CONNECTION REQUEST','".$cname."','".$contact_no1."','".$address."','".$pincode."',
+		'Urgent','".$city."','".$state."','".$city."','RECEIVED VIA WEBSITE','RECEIVED VIA WEBSITE',
+		'RECEIVED VIA WEBSITE','RECEIVED VIA WEBSITE','WEBSITE','OPEN','WEBSITE','WEBSITE','WEBSITE')"; 
+			
+	$params = array(
+		"str" =>  $qry_str
+	);
+
+	$result_insert_data=$client1->InsertData($params);
+	
+	//echo "<p>Request :".htmlspecialchars($client1->__getLastRequest()) ."</p>";
+  
+	//echo "<p>Response:".htmlspecialchars($client1->__getLastResponse(),ENT_QUOTES)."</p>";
+	//exit();
+}*/

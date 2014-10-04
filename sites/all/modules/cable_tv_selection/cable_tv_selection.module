@@ -1,0 +1,47 @@
+<?php
+
+function cable_tv_selection_init() {
+	global $base_url;
+	$node_load = node_load(arg(1));
+	if(arg(0) == 'node'){
+		if($node_load->type == 'channel_packages'){
+		//if((arg(1) == 205) || (arg(1) == 206) || (arg(1) == 515) || (arg(1) == 572) || (arg(1) == 573) || (arg(1) == 574) || (arg(1) == 483)){
+			if(isset($_REQUEST['Submit_channels'])){
+				$_SESSION['channel'] = "";
+				foreach($_REQUEST as $key=>$val){
+					$str_include = strpos($key,'ala_carte_channel_');
+					if($str_include !== False){
+						$new_channel = substr($key,18);
+						$_SESSION['channel'][$new_channel] = $new_channel;
+					}
+				}
+			}
+			if(isset($_REQUEST['new_package'])){
+				$new_package = $_REQUEST['new_package'];
+				$_SESSION['addons'][$new_package] = $new_package;
+			}
+		}
+	}
+	if(isset($_REQUEST['op'])){
+		/*if($_REQUEST['form_id'] == 'webform_client_form_215'){
+			//echo "<pre>";
+			//print_r($_REQUEST);
+			//exit();
+			
+			$URL='http://182.237.8.251:82/inquiry.asmx?wsdl';
+			$client1 =  new SoapClient($URL,array( "trace" => 1 ));	
+		 
+			$result=$client1->AutoRefno();
+		 
+		  
+			$RefNo_xml=$result; 
+		  
+			$RefNo=$RefNo_xml->AutoRefnoResult;
+			$_SESSION['RefNo'] = $RefNo;
+			$_REQUEST['reference_no'] = $RefNo;
+			$_SESSION['RefClient'] = $client1;
+			
+		}*/
+		/**/
+	}
+}

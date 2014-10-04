@@ -1,0 +1,131 @@
+#superfish-1 li ul {
+	background: url("../images/highlight-bg.png") repeat scroll 0 0 rgba(0, 0, 0, 0);
+	zoom:1;
+	margin-top: 7px;
+	width: 223px;
+}
+.signin_button{
+	margin-left:54%;
+}
+
+input.brodband_radiobutton[type="radio"] {
+  float: left;
+  position: relative;
+  left: 55px;
+  display:block;
+}
+
+label.brodband_1 {
+   background-image: none;
+}
+
+
+
+.page-node-433 .webform-client-form .purple_bg {
+width: 920px;
+}
+
+
+.page-node-433 .webform-client-form .blue_bg {
+width: 920px;
+}
+
+.page-node-433 .webform-client-form .form-item LABEL {
+float: left;
+}
+
+
+.page-node-433 .webform-client-form .form-radio {
+margin: -3px 30px -13px 5px;
+position: relative;
+top: 2px;
+}
+
+
+.page-node-433 .webform-client-form .form-item-submitted-tc-checkbox-Y-.form-type-checkbox.form-item INPUT {
+background: none;
+border: none;
+}
+
+
+.page-node-433 .webform-client-form #webform-component-click-here-to-select-your {
+width: 640px;
+margin-left: 0px;
+
+}
+
+
+.caf_btn {
+margin-left: 40px;
+width: 560px;
+}
+
+.mob_icon SPAN {background: url("../images/mobile_icon.png") repeat-y  0px 32px;}
+
+
+.downlaod P { width: 80%;}
+
+.banner { margin-top: 94px;}
+
+.desable_select_outer {margin-top: 0px;}
+
+.mask {
+    display: none;
+}
+
+
+.view-setup-box-product .view-sixth:hover .mask {
+    display: block;
+}
+
+
+.stb_col_2:hover .mask {
+    display: block;
+}
+
+
+.stb_col_2 {
+    height: 220px;
+    background: #f39c12;
+    color: black;
+    line-height: 32px;
+    font-size: 19px;
+}
+
+.view_image SPAN.info {
+    padding: 5px 50px;
+}
+
+.view-slide-show-slider-view .views_slideshow_cycle_main .views-slideshow-cycle-main-frame-row {
+height:380px !important;
+}
+
+.view-slide-show-slider-view span#views_slideshow_controls_text_pause_slide_show_slider_view-block a,
+.view-career-slider span#views_slideshow_controls_text_pause_career_slider-block a {
+   background: url(../images/pause.png);
+   /*background:#000;*/
+   font-size: 0;
+   height: 35px;
+   left: 50%;
+   opacity: 1;
+   position: absolute;
+   top: 155px;
+   width: 35px;
+   z-index: 99;
+}
+.view-slide-show-slider-view span#views_slideshow_controls_text_next_slide_show_slider_view-block a,
+.view-career-slider span#views_slideshow_controls_text_next_career_slider-block a {
+	background: url(../images/right.png);
+	font-size: 0;
+	height: 35px;
+	opacity: 1;
+	position: absolute;
+	right: 10px;
+	top: 155px;
+	width: 36px;
+	z-index: 99;
+}
+
+.full-packages-view .views-row-even .pack_bg {
+    background: url("../images/pppack_bg.png") no-repeat scroll 0px 0px transparent;
+}

@@ -1,0 +1,6 @@
+name = Cable TV selection
+description = Cable TV checkbox for ala carte and add on packages
+package = Core
+version = VERSION
+core = 7.x
+

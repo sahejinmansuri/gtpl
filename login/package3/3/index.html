@@ -1,0 +1,83 @@
+<html>
+<head>
+<title>Welcome to GTPL</title>
+<script src="http://code.jquery.com/jquery.js"></script>
+<script src="src/skdslider.min.js"></script>
+<link href="src/skdslider.css" rel="stylesheet">
+<script type="text/javascript">
+		jQuery(document).ready(function(){
+			jQuery('#demo1').skdslider({'delay':5000, 'animationSpeed': 2000,'showNextPrev':true,'showPlayButton':true,'autoSlide':true,'animationType':'fading'});
+			jQuery('#demo2').skdslider({'delay':5000, 'animationSpeed': 1000,'showNextPrev':true,'showPlayButton':false,'autoSlide':true,'animationType':'sliding'});
+			jQuery('#demo3').skdslider({'delay':5000, 'animationSpeed': 2000,'showNextPrev':true,'showPlayButton':true,'autoSlide':true,'animationType':'fading'});
+			
+			jQuery('#responsive').change(function(){
+			  $('#responsive_wrapper').width(jQuery(this).val());
+			});
+			
+		});
+</script>
+
+
+<style>
+* {
+	margin:0px;
+	padding:0px;
+}
+.wrapper {
+	width:1200px;
+	margin:0 auto;
+}
+
+
+.hd1 {
+  background: url("images/hd_bg.jpg") repeat-x scroll 0 0 rgba(0, 0, 0, 0);
+ height: 106px;
+  margin: 0 auto;
+  position: fixed;
+  width: 100%;
+  z-index: 99;
+  top:0px;
+}
+
+.banner {
+  height: 380px;
+  margin: 0 auto;
+  padding-top: 0px;
+  position: relative;
+  top: 106px;
+  width: 100%;
+  padding-bottom: 106px;
+}
+
+.middle {
+  background: url("images/middle.jpg") repeat-x scroll 0 0 rgba(0, 0, 0, 0);
+  margin: 0 auto;
+
+  width: 100%;
+}
+.clear {
+	clear:both;
+}
+</style>
+</head>
+<body bgcolor="#FFFFFF" leftmargin="0" topmargin="0" marginwidth="0" marginheight="0">
+
+<div class="hd1">
+<div class="wrapper"><img src="images/index_01.jpg" width="1200" height="106" usemap="#Map" border="0" />
+  <map name="Map">
+    <area shape="rect" coords="112,0,278,64" href="../../index.html">
+  </map>
+</div>
+</div>
+
+	
+<div class="banner">
+<!---<img src="images/1.jpg" width="100%" height="380"></div>---->
+
+<div class="clear"></div>
+<div class="middle">
+<div class="wrapper"><img src="images/index_03.jpg" width="1200" height="2076" /></div>
+</div>
+
+</body>
+</html>

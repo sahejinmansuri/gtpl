@@ -1,0 +1,35 @@
+.login_button button {
+  background: none repeat scroll 0 0 #544333;
+}
+
+.login_inner input{
+	margin-top:10px;
+	height:34px !important;
+}
+input.login[type="radio"]{
+	display:block !important;
+}
+label.login_1{
+	background-image:none !important;
+}
+.login_button{
+	background: transparent !important;
+}
+
+.broad_input {
+width: 48%;
+float: left;
+margin-top: 0px;
+padding-bottom: 25px;
+}
+
+.digital_input {
+width: 48%;
+float: left;
+margin-top: 0px;
+padding-bottom: 25px;
+}
+
+.forgotpass A {
+margin-top: 72px;
+}
